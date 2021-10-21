@@ -1,0 +1,49 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  vars:
+    steamcmd_user: steam
+    cstrike_source_ip: 127.0.0.1
+    cstrike_source_server_cfg: |
+      hostname "srht"
+      rcon_password "srht"
+    metamod_source_install_path: /home/steam/cstrike-source/cstrike
+    metamod_source_branch: "1.10"
+    sourcemod_branch: '1.10'
+    gungame_config_txt: |
+      "GunGame.Config"
+      {
+          "Config"
+          {
+              "Enabled" "0"
+          }
+      }
+    gungame_maps_cfg:
+      - map: gg
+        cfg: |
+          "GunGame.Config"
+          {
+              "Config"
+              {
+                  "Enabled" "1"
+              }
+          }
+  tasks:
+    - name: "Include tleguern.steamcmd"
+      include_role:
+        name: "tleguern.steamcmd"
+    - name: "Include tleguern.cstrike-source"
+      include_role:
+        name: "tleguern.cstrike-source"
+    - name: "Include tleguern.metamod-source"
+      include_role:
+        name: "tleguern.metamod-source"
+    - name: "Include tleguern.sourcemod"
+      include_role:
+        name: "tleguern.sourcemod"
+    - name: "Include ansible-role-cstrike-gungame"
+      include_role:
+        name: "ansible-role-cstrike-gungame"

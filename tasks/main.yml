@@ -1,0 +1,127 @@
+---
+- name: Check if gungame is installed
+  stat:
+    path: "{{ gungame_install_path }}/cfg/gungame/"
+  register: __gungame_exists
+
+- name: Check if gungame was installed using ansible
+  stat:
+    path: "{{ gungame_install_path }}/cfg/gungame/version.txt"
+  register: __gungame_exists_ansible
+  when: __gungame_exists.stat.exists
+
+- name: Check the currently installed version of gungame
+  command:
+    cmd: grep -qF {{ gungame_version }} "{{ gungame_install_path }}/cfg/gungame/version.txt"
+  register: __gungame_current_version
+  changed_when: no
+  failed_when: no
+  when:
+    - __gungame_exists.stat.exists
+    - __gungame_exists_ansible.stat.exists
+
+- name: Remove the previous version
+  file:
+    path: "{{ gungame_install_path }}/{{ item }}"
+    state: absent
+  loop:
+    - cfg/gungame/
+    - sound/gungame/
+    - addons/sourcemod/plugins/gungame_afk.smx
+    - addons/sourcemod/plugins/gungame_bot.smx
+    - addons/sourcemod/plugins/gungame_config.smx
+    - addons/sourcemod/plugins/gungame_display_winner.smx
+    - addons/sourcemod/plugins/gungame_logging.smx
+    - addons/sourcemod/plugins/gungame_mapvoting.smx
+    - addons/sourcemod/plugins/gungame.smx
+    - addons/sourcemod/plugins/gungame_stats.smx
+    - addons/sourcemod/plugins/gungame_tk.smx
+    - addons/sourcemod/plugins/gungame_warmup_configs.smx
+    - addons/sourcemod/plugins/gungame_winner_effects.smx
+    - addons/sourcemod/scripting/gungame/
+    - addons/sourcemod/scripting/gungame_stats/
+    - addons/sourcemod/scripting/gungame_afk.sp
+    - addons/sourcemod/scripting/gungame_bot.sp
+    - addons/sourcemod/scripting/gungame_config.sp
+    - addons/sourcemod/scripting/gungame_display_winner.sp
+    - addons/sourcemod/scripting/gungame_logging.sp
+    - addons/sourcemod/scripting/gungame_mapvoting.sp
+    - addons/sourcemod/scripting/gungame_stats.sp
+    - addons/sourcemod/scripting/gungame_tk.sp
+    - addons/sourcemod/scripting/gungame_warmup_configs.sp
+    - addons/sourcemod/scripting/gungame_winner_effects.sp
+    - addons/sourcemod/translations/gungame_afk.txt
+    - addons/sourcemod/translations/gungame_bot.txt
+    - addons/sourcemod/translations/gungame_stats.txt
+    - addons/sourcemod/translations/gungame_tk.txt
+  when:
+    - __gungame_exists.stat.exists
+    - __gungame_current_version.rc != 0
+
+- name: Install gungame
+  when: 'not __gungame_exists.stat.exists or not __gungame_exists_ansible.stat.exists or __gungame_current_version.rc != 0'
+  block:
+    - name: Download the requested version
+      get_url:
+        url: "{{ gungame_url }}"
+        dest: /tmp
+
+    - name: Extract the downloaded file
+      unarchive:
+        remote_src: yes
+        src: "/tmp/{{ gungame_target }}"
+        dest: "{{ gungame_install_path }}/"
+        owner: "{{ steamcmd_user }}"
+        group: "{{ steamcmd_user }}"
+        exclude:
+          - doc
+          - tools
+          - README.md
+        extra_opts:
+          - --strip # Files in the archive are contained in a top level dir
+          - 1
+
+    - name: Remove the archive
+      file:
+        path: "/tmp/{{ gungame_target }}"
+        state: absent
+
+    - name: Write the current gungame version
+      copy:
+        dest: "{{ gungame_install_path }}/cfg/gungame/version.txt"
+        content: "{{ gungame_version }}"
+        owner: "{{ steamcmd_user }}"
+        group: "{{ steamcmd_user }}"
+      notify: "Restart cstrike-source"
+
+- name: Ensure gungame.config.txt is configured
+  template:
+    src: gungame.config.txt.j2
+    dest: "{{ gungame_install_path }}/cfg/gungame/css/gungame.config.txt"
+    owner: "{{ steamcmd_user }}"
+    group: "{{ steamcmd_user }}"
+    mode: 0644
+  when: gungame_config_txt
+  notify: "Restart cstrike-source"
+
+- name: Gungame specifc maps
+  when: gungame_maps_cfg
+  block:
+    - name: Ensure map specific configuration folder exists
+      file:
+        path: "{{ gungame_install_path }}/cfg/gungame/css/maps/"
+        state: directory
+        owner: "{{ steamcmd_user }}"
+        group: "{{ steamcmd_user }}"
+        mode: 0755
+    - name: Ensure map specific configuration is installed
+      template:
+        src: map.gungame.txt.j2
+        dest: "{{ gungame_install_path }}/cfg/gungame/css/maps/{{ item.map }}.config.txt"
+        owner: "{{ steamcmd_user }}"
+        group: "{{ steamcmd_user }}"
+        mode: 0644
+      loop: "{{ gungame_maps_cfg }}"
+      loop_control:
+        label: "{{ item.map }}"
+      notify: "Restart cstrike-source"
