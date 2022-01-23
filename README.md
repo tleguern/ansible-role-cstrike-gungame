@@ -8,7 +8,7 @@ An ansible role dedicated to the installation of SteamCMD such as [ansible-steam
 
 An ansible role dedicated to the Installation of Metamod:Source such as [ansible-role-metamod-source](https://github.com/tleguern/ansible-role-metamod-source).
 
-An ansible role dedicated to the installation of a Source mod such as [ansible-role-cstrike-source](https://github.com/tleguern/ansible-role-cstrike-source) or any role providing the `Restart {{ metamod_source_game }}` handler.
+An ansible role dedicated to the installation of a Source mod such as [ansible-role-cstrike-source](https://github.com/tleguern/ansible-role-cstrike-source) or any role providing the `Restart cstrike-source` handler.
 
 ## Role Variables
 
@@ -18,7 +18,7 @@ An ansible role dedicated to the installation of a Source mod such as [ansible-r
 | `gungame_url` | Download mirror | `https://github.com/altexdim/sourcemod-plugin-gungame/archive/refs/heads/master.tar.gz` |
 | `gungame_version` | Desired version | `head` |
 | `gungame_target` | Archive name | `sourcemod-plugin-gungame-master.tar.gz` |
-| `gungame_install_path` | Installation directory | `/home/{{ steamcmd_user }}/.steam/steamapps/common/Counter-Strike Source Dedicated Server/cstrike` |
+| `gungame_install_path` | Installation directory | `/home/{{ steamcmd_user }}/cstrike-source/cstrike` |
 | `gungame_config_txt` | Global GunGame configuration | `""` |
 | `gungame_maps_cfg` | Per map GunGame configuration | `[]` |
 

@@ -2,6 +2,6 @@
 gungame_url: https://github.com/altexdim/sourcemod-plugin-gungame/archive/refs/heads/master.tar.gz
 gungame_version: head
 gungame_target: sourcemod-plugin-gungame-master.tar.gz
-gungame_install_path: "/home/{{ steamcmd_user }}/.steam/steamapps/common/Counter-Strike Source Dedicated Server/cstrike"
+gungame_install_path: "/home/{{ steamcmd_user }}/cstrike-source/cstrike"
 gungame_config_txt: ""
 gungame_maps_cfg: []
